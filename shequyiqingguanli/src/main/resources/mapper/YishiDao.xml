@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dao.YishiDao">
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        a.id as id
+        ,a.daka_id as dakaId
+        ,a.yishi_name as yishiName
+        ,a.yishi_photo as yishiPhoto
+        ,a.yishi_types as yishiTypes
+        ,a.yishi_content as yishiContent
+        ,a.yishi_delete as yishiDelete
+        ,a.insert_time as insertTime
+        ,a.create_time as createTime
+    </sql>
+    <select id="selectListView" parameterType="map" resultType="com.entity.view.YishiView" >
+        SELECT
+        <include refid="Base_Column_List" />
+        <!-- 级联表的字段 -->
+        ,daka.yonghu_id as dakaYonghuId
+        ,daka.daka_name as dakaName
+        ,daka.daka_file as dakaFile
+        ,daka.daka_wendu as dakaWendu
+        ,daka.daka_text as dakaText
+        ,daka.daka_delete as dakaDelete
+
+        FROM yishi  a
+        left JOIN daka daka ON a.daka_id = daka.id
+
+        <where>
+            <if test="params.ids != null">
+                and a.id in
+                <foreach item="item" index="index" collection="params.ids" open="(" separator="," close=")">
+                #{item}
+                </foreach>
+            </if>
+            <if test="params.dakaId != null and params.dakaId != ''">
+                and (
+                    a.daka_id = #{params.dakaId}
+                )
+            </if>
+            <if test=" params.yishiName != '' and params.yishiName != null and params.yishiName != 'null' ">
+                and a.yishi_name like CONCAT('%',#{params.yishiName},'%')
+            </if>
+            <if test="params.yishiTypes != null and params.yishiTypes != ''">
+                and a.yishi_types = #{params.yishiTypes}
+            </if>
+            <if test=" params.yishiContent != '' and params.yishiContent != null and params.yishiContent != 'null' ">
+                and a.yishi_content like CONCAT('%',#{params.yishiContent},'%')
+            </if>
+            <if test="params.yishiDeleteStart != null and params.yishiDeleteStart != ''">
+                <![CDATA[  and a.yishi_delete >= #{params.yishiDeleteStart}   ]]>
+            </if>
+            <if test="params.yishiDeleteEnd != null and params.yishiDeleteEnd != ''">
+                <![CDATA[  and a.yishi_delete <= #{params.yishiDeleteEnd}   ]]>
+            </if>
+             <if test="params.yishiDelete != null and params.yishiDelete != ''">
+                and a.yishi_delete = #{params.yishiDelete}
+             </if>
+            <if test=" params.insertTimeStart != '' and params.insertTimeStart != null ">
+                <![CDATA[  and UNIX_TIMESTAMP(a.insert_time) >= UNIX_TIMESTAMP(#{params.insertTimeStart}) ]]>
+            </if>
+            <if test=" params.insertTimeEnd != '' and params.insertTimeEnd != null ">
+                <![CDATA[  and UNIX_TIMESTAMP(a.insert_time) <= UNIX_TIMESTAMP(#{params.insertTimeEnd}) ]]>
+            </if>
+
+                <!-- 判断健康码打卡的id不为空 -->
+            <if test=" params.dakaIdNotNull != '' and params.dakaIdNotNull != null and params.dakaIdNotNull != 'null' ">
+                and a.daka_id IS NOT NULL
+            </if>
+            <if test="params.yonghuId != null  and params.yonghuId != ''">
+                and daka.yonghu_id = #{params.yonghuId}
+            </if>
+            <if test=" params.dakaName != '' and params.dakaName != null and params.dakaName != 'null' ">
+                and daka.daka_name like CONCAT('%',#{params.dakaName},'%')
+            </if>
+            <if test="params.dakaWenduStart != null ">
+                <![CDATA[  and daka.daka_wendu >= #{params.dakaWenduStart}   ]]>
+            </if>
+            <if test="params.dakaWenduEnd != null ">
+                <![CDATA[  and daka.daka_wendu <= #{params.dakaWenduEnd}   ]]>
+            </if>
+            <if test=" params.dakaText != '' and params.dakaText != null and params.dakaText != 'null' ">
+                and daka.daka_text like CONCAT('%',#{params.dakaText},'%')
+            </if>
+            <if test="params.dakaDeleteStart != null  and params.dakaDeleteStart != '' ">
+                <![CDATA[  and daka.daka_delete >= #{params.dakaDeleteStart}   ]]>
+            </if>
+            <if test="params.dakaDeleteEnd != null  and params.dakaDeleteEnd != '' ">
+                <![CDATA[  and daka.daka_delete <= #{params.dakaDeleteEnd}   ]]>
+            </if>
+            <if test="params.dakaDelete != null  and params.dakaDelete != '' ">
+                and daka.daka_delete = #{params.dakaDelete}
+            </if>
+            <if test=" params.insertTimeStart != '' and params.insertTimeStart != null ">
+                <![CDATA[  and UNIX_TIMESTAMP(daka.insert_time) >= UNIX_TIMESTAMP(#{params.insertTimeStart}) ]]>
+            </if>
+            <if test=" params.insertTimeEnd != '' and params.insertTimeEnd != null ">
+                <![CDATA[  and UNIX_TIMESTAMP(daka.insert_time) <= UNIX_TIMESTAMP(#{params.insertTimeEnd}) ]]>
+            </if>
+        </where>
+        order by a.${params.sort} ${params.order}
+    </select>
+
+</mapper>
